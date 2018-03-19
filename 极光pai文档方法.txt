@@ -1,0 +1,303 @@
+
+
+1.初始化极光推送服务pai
+
+  public static void init(Context context); // context 应用的 ApplicationContext
+
+2.停止与恢复推送服务 API
+
+  public static void stopPush(Context context); // context 应用的 ApplicationContext
+
+3.恢复推送服务。
+
+  public static void resumePush(Context context); // context 应用的 ApplicationContext
+
+4.检查 Push Service 是否已经被停止.检查服务推送是否停止
+
+  public static boolean isPushStopped(Context context); // context 应用的 ApplicationContext
+
+5.接收推送消息Receiver，广播详细解析
+  （这个动作不是必须的。用户有需要才定义 Receiver 类来处理 SDK过来的广播。）
+  （在AndroidManifest配置广播需要接收的信息类型action ）
+
+  配置类型：
+
+  (1)JPushInterface.ACTION_REGISTRATION_ID = "cn.jpush.android.intent.REGISTRATION"
+
+     向服务注册所得到的注册id；一般可以不用做处理，深入开发想要保存app与服务关系，则接受此广播
+     Bundle bundle = intent.getExtras();
+     String title = bundle.getString(JPushInterface.EXTRA_REGISTRATION_ID);
+
+  (2)JPushInterface.ACTION_MESSAGE_RECEIVED = "cn.jpush.android.intent.MESSAGE_RECEIVED"
+
+     收到了自定义消息 Push ;SDK对自定义详细只是传递不会又任何界面上的展示；想要有提示栏需要开发则自定义
+     Bundle bundle = intent.getExtras();
+     // 保存服务器推送下来的消息的标题,对应 API 消息内容的 title 字段。
+     String title = bundle.getString(JPushInterface.EXTRA_TITLE);
+     // 保存服务器推送下来的消息的内容,对应 API 消息内容的 message 字段。
+     String message = bundle.getString(JPushInterface.EXTRA_MESSAGE);
+     // 保存服务器推送下来的附加字段。json格式,对应 API 消息内容的 extras 字段。
+     String extras = bundle.getString(JPushInterface.EXTRA_EXTRA);
+     // SDK1.6.1以上版本支持；唯一标识信息的id，可用于上报统计等
+     String file = bundle.getString(JPushInterface.EXTRA_MSG_ID);
+
+  (3)JPushInterface.ACTION_NOTIFICATION_RECEIVED = "cn.jpush.android.intent.NOTIFICATION_RECEIVED"
+
+     收到通知push；如果通知的内容为空，则在通知栏不会展示通知，但是广播Intent还是会有。开发者可以通知内容外的其他的信息
+     Bundle bundle = intent.getExtras();
+     // 保存服务器推送下来的通知的标题,对应 API 通知内容的 title 字段。
+     String title = bundle.getString(JPushInterface.EXTRA_NOTIFICATION_TITLE);
+     // 保存服务器推送下来的通知内容,对应 API 通知内容的 alert 字段。
+     String content = bundle.getString(JPushInterface.EXTRA_ALERT);
+     // SDK 1.2.9 以上版本支持。保存服务器推送下来的附加字段。json 格式。对应 API 通知内容的 extras 字段。
+     String extras = bundle.getString(JPushInterface.EXTRA_EXTRA);
+     // SDK 1.3.5 以上版本支持。通知栏的Notification ID，可以用于清除Notification,如果服务端内容（alert）字段为空，则notification id 为0
+     int notificationId = bundle.getInt(JPushInterface.EXTRA_NOTIFICATION_ID);
+     // SDK 1.4.0 以上版本支持。富媒体通知推送下载的HTML的文件路径,用于展现WebView。
+     String fileHtml = bundle.getString(JPushInterface.EXTRA_RICHPUSH_HTML_PATH);
+     // SDK 1.4.0 以上版本支持。富媒体通知推送下载的图片资源的文件名,多个文件名用 “，” 分开。 与 “JPushInterface.EXTRA_RICHPUSH_HTML_PATH” 位于同一个路径。
+     String fileStr = bundle.getString(JPushInterface.EXTRA_RICHPUSH_HTML_RES);
+     String[] fileNames = fileStr.split(",");
+     // SDK 1.6.1 以上版本支持。唯一标识通知消息的 ID, 可用于上报统计等。
+     String file = bundle.getString(JPushInterface.EXTRA_MSG_ID);
+     // SDK 3.0.0 以上版本支持，支持 api 16 以上的rom。大文本通知样式中大文本的内容。
+     String bigText = bundle.getString(JPushInterface.EXTRA_BIG_TEXT);
+     // SDK 3.0.0 以上版本支持，支持 api 16 以上的rom。可支持本地图片的路径，或者填网络图片地址。大图片通知样式中大图片的路径/地址。
+     String bigPicPath = bundle.getString(JPushInterface.EXTRA_BIG_PIC_PATH);
+     // SDK 3.0.0 以上版本支持，支持 api 16 以上的rom。获取的是一个 JSONObject，json 的每个 key 对应的 value 会被当作文本条目逐条展示。收件箱通知样式中收件箱的内容。
+     String inboxJson = bundle.getString(JPushInterface.EXTRA_INBOX);
+     // SDK 3.0.0 以上版本支持, 支持 api 16 以上的rom。默认为0，范围为 -2～2 ，其他值将会被忽略而采用默认。通知的优先级。
+     String prio = bundle.getString(JPushInterface.EXTRA_NOTI_PRIORITY);
+     // SDK 3.0.0 以上版本支持, 支持 api 21 以上的rom。完全依赖 rom 厂商对每个 category 的处理策略，比如通知栏的排序。通知分类。
+     String prio = bundle.getString(JPushInterface.EXTRA_NOTI_CATEGORY);
+
+  (4)JPushInterface.ACTION_NOTIFICATION_OPENED = "cn.jpush.android.intent.NOTIFICATION_OPENED"
+
+     用户点击了通知。 一般情况下，用户不需要配置此 receiver action。
+     如果开发者在 AndroidManifest.xml 里未配置此 receiver action，那么，SDK 会默认打开应用程序的主 Activity，相当于用户点击桌面图标的效果。
+     如果开发者在 AndroidManifest.xml 里配置了此 receiver action，那么，当用户点击通知时，SDK 不会做动作。开发者应该在自己写的 BroadcastReceiver 类里处理，比如打开某 Activity 。
+     Bundle bundle = intent.getExtras();
+     // 保存服务器推送下来的通知的标题。对应 API 通知内容的 title 字段。对应 Portal 推送通知界面上的“通知标题”字段。
+     String title = bundle.getString(JPushInterface.EXTRA_NOTIFICATION_TITLE);
+     // 保存服务器推送下来的通知内容。对应 API 通知内容的alert字段。对应 Portal 推送通知界面上的“通知内容”字段。
+     String content = bundle.getString(JPushInterface.EXTRA_ALERT);
+     // SDK 1.2.9 以上版本支持。保存服务器推送下来的附加字段。json 格式。对应 API 通知内容的 extras 字段。
+     String extras = bundle.getString(JPushInterface.EXTRA_EXTRA);
+     // SDK 1.3.5 以上版本支持。通知栏的Notification ID，可以用于清除Notification,如果服务端内容（alert）字段为空，则notification id 为0
+     int notificationId = bundle.getInt(JPushInterface.EXTRA_NOTIFICATION_ID);
+     // SDK1.6.1以上版本支持；唯一标识信息的id，可用于上报统计等
+     String file = bundle.getString(JPushInterface.EXTRA_MSG_ID);
+
+  (5)JPushInterface.ACTION_NOTIFICATION_CLICK_ACTION = "cn.jpush.android.intent.NOTIFICATION_CLICK_ACTION"
+
+     用户点击了通知栏中自定义的按钮。(SDK 3.0.0 以上版本支持)
+     使用普通通知的开发者不需要配置此 receiver action。只有开发者使用了 MultiActionsNotificationBuilder 构建携带按钮的通知栏的通知时，可通过该 action 捕获到用户点击通知栏按钮的操作，并自行处理。
+     JPushInterface.EXTRA_NOTIFICATION_ACTION_EXTRA
+     1)SDK 3.0.0 以上版本支持。获取通知栏按钮点击事件携带的附加信息。
+     对应使用 MultiActionsNotificationBuilder.addJPushAction 添加的按钮信息。
+       private void setAddActionsStyle() {
+           MultiActionsNotificationBuilder builder = new MultiActionsNotificationBuilder(PushSetActivity.this);
+           builder.addJPushAction(R.drawable.jpush_ic_richpush_actionbar_back, "first", "my_extra1");
+           builder.addJPushAction(R.drawable.jpush_ic_richpush_actionbar_back, "second", "my_extra2");
+           builder.addJPushAction(R.drawable.jpush_ic_richpush_actionbar_back, "third", "my_extra3");
+           JPushInterface.setPushNotificationBuilder(10, builder);
+
+           Toast.makeText(PushSetActivity.this, "AddActions Builder - 10", Toast.LENGTH_SHORT).show();
+       }
+
+     2)获取到对应的附加信息，确定是哪个按钮后自行处理。
+       else if (JPushInterface.ACTION_NOTIFICATION_CLICK_ACTION.equals(intent.getAction())){
+           Log.d(TAG, "[MyReceiver] 用户点击了通知栏按钮");
+           String nActionExtra = intent.getExtras().getString(JPushInterface.EXTRA_NOTIFICATION_ACTION_EXTRA);
+
+           // 开发者根据不同 Action 携带的 extra 字段来分配不同的动作。
+           if(nActionExtra==null){
+               Log.d(TAG,"ACTION_NOTIFICATION_CLICK_ACTION nActionExtra is null");
+               return;
+           }
+           if (nActionExtra.equals("my_extra1")) {
+               Log.d(TAG, "[MyReceiver] 用户点击通知栏按钮一");
+           } else if (nActionExtra.equals("my_extra2")) {
+               Log.d(TAG, "[MyReceiver] 用户点击通知栏按钮二");
+           } else if (nActionExtra.equals("my_extra3")) {
+               Log.d(TAG, "[MyReceiver] 用户点击通知栏按钮三");
+           } else {
+               Log.d(TAG, "[MyReceiver] 用户点击通知栏按钮未定义");
+           }
+       }
+
+  (6)JPushInterface.ACTION_CONNECTION_CHANGE = "cn.jpush.android.intent.CONNECTION"
+
+     JPush 服务的连接状态发生变化。（注：不是指 Android 系统的网络连接状态。）
+     Bundle bundle = intent.getExtras();
+     // SDK 1.6.3 以上版本支持。获取当前 JPush 服务的连接状态。
+     boolean connected = bundle.getBooleanExtra(JPushInterface.EXTRA_CONNECTION_CHANGE, false);
+
+6.别名与标签api
+
+  1)别名
+  每个用户只能对应一个别名，但是一个别名可以对用多个用户。
+
+  2)标签
+  为安装了应用程序的用户，打上标签。其目的主要是方便开发者根据标签，来批量下发 Push 消息。
+  可为每个用户打多个标签。
+
+  3)方法
+
+  (1)这时你可以调用本方法 filterValidTags 来过滤掉无效的 tags，得到有效的 tags，
+  // 设置 tags 时，如果其中一个 tag 无效，则整个设置过程失败。
+  // 如果 App 的 tags 会在运行过程中动态设置，并且存在对 JPush SDK tag 规定的无效字符,则有可能一个 tag 无效导致这次调用里所有的 tags 更新失败。
+  // 开始支持的版本：1.5.0。把所有tags传入返回有效的 tag 集合。
+  public static Set<String> filterValidTags(Set<String> tags);
+
+  (2)设置别名（这个接口是覆盖逻辑，而不是增量逻辑。即新的调用会覆盖之前的设置。）
+  // .sequence : 用户自定义的操作序列号, 同操作结果一起返回，用来标识一次操作的唯一性。
+  // .alias : 每次调用设置有效的别名，覆盖之前的设置。命名长度限制为 40 字节。区分大小写。UTF-8
+  public static void setAlias(Context context, int sequence, String alias);
+
+  (3)调用此 API 来删除别名。
+  public static void deleteAlias(Context context,int sequence);
+
+  (4)调用此 API 来查询别名。
+  public static void getAlias(Context context,int sequence);
+
+  (5)设置标签
+  // .sequence : 用户自定义的操作序列号, 同操作结果一起返回，用来标识一次操作的唯一性。
+  // .tags : 每次调用至少设置一个 tag，覆盖之前的设置，不是新增。
+  public static void setTags(Context context, int sequence,Set<String> tags);
+
+  (6)增加标签
+  public static void addTags(Context context, int sequence,Set<String> tags);
+
+  (7)删除标签
+  public static void deleteTags(Context context, int sequence,Set<String> tags);
+
+  (8)清空标签（位置不删除）
+  public static void cleanTags(Context context, int sequence);
+
+  (9)调用此 API 来查询所有标签。
+  public static void getAllTags(Context context, int sequence);
+
+  (10)调用此 API 来查询指定tag与当前用户绑定的状态。
+  public static void checkTagBindState(Context context,int sequence,String tag);
+
+  (11)jPushMessage类：tag增删查改的操作会在此方法中回调结果。开始支持的版本：3.0.7
+  public void onTagOperatorResult(Context context, JPushMessage jPushMessage);
+
+  (12)jPushMessage类：查询某个tag与当前用户的绑定状态的操作会在此方法中回调结果。
+  public void onCheckTagOperatorResult(Context context, JPushMessage jPushMessage);
+
+  (13)jPushMessage类：alias相关的操作会在此方法中回调结果。
+  public void onAliasOperatorResult(Context context, JPushMessage jPushMessage);
+
+  (14)开发者传或查询得到的alias。
+  public String getAlias();
+
+  (15)开发者传或查询得到的tags。
+  public Set<String> getTags();
+
+  (16)对应操作的返回码,0为成功，其他返回码请参考错误码定义.
+  public int getErrorCode();
+
+  (17)开发者调用接口时传入的sequence,通过该sequence开发者可以从开发者自己缓存中获取到对应的操作。
+  public int getSequence();
+
+  (18)开发者想要查询的tag与当前用户绑定的状态。
+  public boolean getTagCheckStateResult();
+
+  (19)开发者想要查询绑定状态的tag。
+  public String getCheckTag();
+
+  4)老别名alias与标签tag接口
+
+7.获取 RegistrationID API。开始支持的版本：1.6.0
+
+  // SDK 初次注册成功后，开发者通过在自定义的 Receiver 里监听 Action - cn.jpush.android.intent.REGISTRATION 来获取对应的 RegistrationID。注册成功后，也可以通过此函数获取
+  public static String getRegistrationID(Context context)
+
+8.统计分析 API。开始支持的版本：1.6.0
+
+  // 应在所有的 Activity 的 onResume / onPause 方法里调用。
+  public static void onResume(final Activity activity)
+  public static void onPause(final Activity activity)
+
+9.用于上报用户的通知栏被打开，或者用于上报用户自定义消息被展示等客户端需要统计的事件。
+
+  public static void reportNotificationOpened(Context context, String msgId)
+
+10.清除通知 API
+
+  // API - clearAllNotifications
+  public static void clearAllNotifications(Context context);
+  // API - clearNotificationById
+  public static void clearNotificationById(Context context, int notificationId);
+
+11.设置允许推送时间 API
+
+  // 开发者可以调用此 API 来设置允许推送的时间。
+  // Context context 应用的ApplicationContext
+  // Set days 0表示星期天，1表示星期一，以此类推。 （7天制，Set集合里面的int范围为0到6）
+     Sdk1.2.9 – 新功能:set的值为null,则任何时间都可以收到消息和通知，set的size为0，则表示任何时间都收不到消息和通知.
+  // int startHour 允许推送的开始时间 （24小时制：startHour的范围为0到23）
+  // int endHour 允许推送的结束时间 （24小时制：endHour的范围为0到23）
+  public static void setPushTime(Context context, Set<Integer> weekDays, int startHour, int endHour)
+
+12.设置通知静默时间 API
+
+  // 默认情况下用户在收到推送通知时，客户端可能会有震动，响铃等提示。但用户在睡觉、开会等时间点希望为 "免打扰" 模式，也是静音时段的概念。
+     开发者可以调用此 API 来设置静音时段。如果在该时间段内收到
+  // .Context context 应用的ApplicationContext
+  // .int startHour 静音时段的开始时间 - 小时 （24小时制，范围：0~23 ）
+  // .int startMinute 静音时段的开始时间 - 分钟（范围：0~59 ）
+  // .int endHour 静音时段的结束时间 - 小时 （24小时制，范围：0~23 ）
+  // .int endMinute 静音时段的结束时间 - 分钟（范围：0~59 ）
+  public static void setSilenceTime(Context context, int startHour, int startMinute, int endHour, int endMinute)
+
+13.申请权限接口（Android 6.0 及以上）
+
+  "android.permission.READ_PHONE_STATE"
+  "android.permission.WRITE_EXTERNAL_STORAGE"
+  "android.permission.READ_EXTERNAL_STORAGE"
+  "android.permission.ACCESS_FINE_LOCATION"
+
+14.设置是否开启省电模式
+
+  public static void setPowerSaveMode(Context context,boolean enable);
+
+15.通知栏样式定制 API
+
+  public static void setPowerSaveMode(Context context,boolean enable);
+
+16.通知栏样式定制 API
+
+  public static void setDefaultPushNotificationBuilder(DefaultPushNotificationBuilder builder)
+
+17.设置保留最近通知条数 API
+
+  public static void setLatestNotificationNumber(Context context, int maxNum)
+
+18.客户端错误码定义
+
+  ...
+
+19.CrashLog收集并上报
+
+  public static void stopCrashHandler(Context context)
+
+20.获取推送连接状态
+
+  public static boolean getConnectionState(Context context);
+
+21.本地通知API
+
+  public static void addLocalNotification(Context context, JPushLocalNotification notification)
+
+
+
+
+
+
+
+
+
+
